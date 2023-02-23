@@ -1,0 +1,38 @@
+# Ignore the python 3 package files
+__pycache__/
+
+# Ignore emacs backup files
+*~
+
+# Ignore the local environment files
+data_preprocessing/setenvironment.m
+#setpyenv.json
+
+# Ignore pycharm-setting files
+.idea/*
+
+# Ignore Tensorboard logger directories
+log/
+
+*.pt
+
+# vscode
+settings.json
+**/.python_version
+
+# results folder
+outputs
+plots
+tensorboard_logs
+*.png
+*.csv
+*.txt
+tensorboard_logs_old
+
+
+# vscode/env
+.python-version
+launch.json
+
+# Saved Models
+saved_models/

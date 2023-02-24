@@ -39,7 +39,7 @@ log_step: 1000
 # Number of batches to wait before updating learning rate (default: 1000)
 lr_step: 1000
 # Number of training batches (default: 10000)
-iterations: 5000
+iterations: 100
 # Partitioning of training data (Options: random, selected surveys, single survey, all surveys - default: 'all surveys')
 partition_train: 'selected surveys'
 # List with the names of the selected surveys for training

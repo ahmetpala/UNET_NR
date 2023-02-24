@@ -17,6 +17,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 """
 
 import numpy as np
+
+from batch.samplers.background_near_miss import NMBackgroundZarr
 from data.data_reader import get_data_readers
 from batch.samplers.background import Background, BackgroundZarr
 from batch.samplers.seabed import Seabed, SeabedZarr
@@ -34,7 +36,7 @@ class DataMemm:
                  patch_overlap=20,
                  **kwargs):
         self.frequencies = frequencies
-        self.window_size = patch_size   # height, width
+        self.window_size = patch_size  # height, width
 
         # Get list of all memmap data readers (Echograms)
         self.readers = get_data_readers(
@@ -45,11 +47,11 @@ class DataMemm:
         self.partition_train = partition_train  # Random, selected or all
         self.train_surveys = train_surveys  # List of surveys used for training
         self.validation_surveys = validation_surveys  # List of surveys used for testing
-        
+
         # Evaluation / inference
         self.partition_predict = partition_predict
         self.evaluation_surveys = evaluation_surveys
-        self.save_prediction_surveys = save_prediction_surveys # List of surveys for which to save predictions
+        self.save_prediction_surveys = save_prediction_surveys  # List of surveys for which to save predictions
         self.eval_mode = eval_mode
         self.patch_overlap = patch_overlap
 
@@ -179,9 +181,9 @@ class DataMemm:
         surveys = [reader for reader in self.readers if reader.year == year]
 
         samplers = [Gridded(surveys,
-                       window_size=self.window_size,
-                       patch_overlap=self.patch_overlap,
-                       mode=self.eval_mode)]
+                            window_size=self.window_size,
+                            patch_overlap=self.patch_overlap,
+                            mode=self.eval_mode)]
 
         return samplers
 
@@ -193,15 +195,13 @@ class DataMemm:
 class DataZarr:
     """  Partition zarr data into training, test and validation datasets """
 
-
     def __init__(self, frequencies, patch_size, partition_train, train_surveys, validation_surveys,
-                 partition_predict, evaluation_surveys, save_prediction_surveys, eval_mode,
+                 partition_predict, evaluation_surveys, save_prediction_surveys, eval_mode, sampling_strategy,
                  patch_overlap=20,
                  **kwargs):
 
-        self.frequencies = sorted([freq for freq in frequencies]) # multiply by 1000 if frequency in Hz
+        self.frequencies = sorted([freq for freq in frequencies])  # multiply by 1000 if frequency in Hz
         self.window_size = patch_size  # height, width
-
 
         # Get list of all memmap data readers (Echograms)
         # self.readers = get_data_readers(
@@ -217,9 +217,11 @@ class DataZarr:
         # Evaluation / inference
         self.partition_predict = partition_predict
         self.evaluation_surveys = evaluation_surveys
-        self.save_prediction_surveys = save_prediction_surveys # List of surveys for which to save predictions
+        self.save_prediction_surveys = save_prediction_surveys  # List of surveys for which to save predictions
         self.eval_mode = eval_mode
         self.patch_overlap = patch_overlap
+
+        self.sampling_strategy = sampling_strategy  # AHMET
 
         # print(f"{len(self.readers)} found:", [z.name for z in self.readers])
 
@@ -263,15 +265,15 @@ class DataZarr:
                                      minimum_shape=self.window_size[0],
                                      mode="zarr")
             test = get_data_readers(self.validation_surveys, frequencies=self.frequencies,
-                                     minimum_shape=self.window_size[0],
-                                     mode="zarr")
+                                    minimum_shape=self.window_size[0],
+                                    mode="zarr")
 
         elif self.partition_train == "all surveys":
             train_surveys = list(range(2007, 2019))
             train = get_data_readers(train_surveys, frequencies=self.frequencies,
                                      minimum_shape=self.window_size[0],
                                      mode="zarr")
-            test = [survey for survey in train if survey.year == 2017] # use 2017 survey as test after training on all
+            test = [survey for survey in train if survey.year == 2017]  # use 2017 survey as test after training on all
 
         else:
             raise ValueError(
@@ -305,46 +307,61 @@ class DataZarr:
         if readers_train is None or readers_test is None:
             readers_train, readers_test = self.partition_data_train()
 
-        samplers_train = [
-            BackgroundZarr(readers_train, self.window_size),
-            SeabedZarr(readers_train, self.window_size),
-            SchoolZarr(readers_train, self.window_size, 27),
-            SchoolZarr(readers_train, self.window_size, 1),
-            SchoolSeabedZarr(
-                readers_train,
-                self.window_size,
-                max_dist_to_seabed=self.window_size[0] // 2,
-                fish_type=27,
-            ),
-            SchoolSeabedZarr(
-                readers_train,
-                self.window_size,
-                max_dist_to_seabed=self.window_size[0] // 2,
-                fish_type=1,
-            ),
-        ]
+        if self.sampling_strategy == 'Near_Miss':
+            samplers_train = [
+                NMBackgroundZarr(readers_train, self.window_size),
+                SchoolZarr(readers_train, self.window_size, 27),
+                SchoolZarr(readers_train, self.window_size, 1)]
 
-        # Also same random samplers for testing during training
-        samplers_test = [
-            BackgroundZarr(readers_test, self.window_size),
-            SeabedZarr(readers_test, self.window_size),
-            SchoolZarr(readers_test, self.window_size, 27),
-            SchoolZarr(readers_test, self.window_size, 1),
-            SchoolSeabedZarr(
-                readers_test,
-                self.window_size,
-                max_dist_to_seabed=self.window_size[0] // 2,
-                fish_type=27,
-            ),
-            SchoolSeabedZarr(
-                readers_test,
-                self.window_size,
-                max_dist_to_seabed=self.window_size[0] // 2,
-                fish_type=1,
-            ),
-        ]
+            # Also same random samplers for testing during training
+            samplers_test = [
+                NMBackgroundZarr(readers_test, self.window_size),
+                SchoolZarr(readers_test, self.window_size, 27),
+                SchoolZarr(readers_test, self.window_size, 1)]
 
-        sampler_probs = [1, 5, 5, 5, 5, 5]
+            sampler_probs = [1, 1, 1]
+
+        else:
+            samplers_train = [
+                BackgroundZarr(readers_train, self.window_size),
+                SeabedZarr(readers_train, self.window_size),
+                SchoolZarr(readers_train, self.window_size, 27),
+                SchoolZarr(readers_train, self.window_size, 1),
+                SchoolSeabedZarr(
+                    readers_train,
+                    self.window_size,
+                    max_dist_to_seabed=self.window_size[0] // 2,
+                    fish_type=27,
+                ),
+                SchoolSeabedZarr(
+                    readers_train,
+                    self.window_size,
+                    max_dist_to_seabed=self.window_size[0] // 2,
+                    fish_type=1,
+                ),
+            ]
+
+            # Also same random samplers for testing during training
+            samplers_test = [
+                BackgroundZarr(readers_test, self.window_size),
+                SeabedZarr(readers_test, self.window_size),
+                SchoolZarr(readers_test, self.window_size, 27),
+                SchoolZarr(readers_test, self.window_size, 1),
+                SchoolSeabedZarr(
+                    readers_test,
+                    self.window_size,
+                    max_dist_to_seabed=self.window_size[0] // 2,
+                    fish_type=27,
+                ),
+                SchoolSeabedZarr(
+                    readers_test,
+                    self.window_size,
+                    max_dist_to_seabed=self.window_size[0] // 2,
+                    fish_type=1,
+                ),
+            ]
+
+            sampler_probs = [1, 5, 5, 5, 5, 5]
 
         assert len(sampler_probs) == len(samplers_train)
         assert len(sampler_probs) == len(samplers_test)
@@ -379,5 +396,3 @@ class DataZarr:
         return get_data_readers([survey], frequencies=self.frequencies,
                                 minimum_shape=self.window_size[0],
                                 mode="zarr")
-
-

@@ -522,6 +522,11 @@ class DataReaderZarr():
         self.seabed_path = os.path.join(*[self.path, f'{self.name}_bottom.zarr'])
         self.work_path = os.path.join(*[self.path, f'{self.name}_labels.parquet'])
         self.objects_df_path = os.path.join(*[self.path, f'{self.name}_labels.parquet.csv'])
+
+        self.distances_df_path = os.path.join(*[self.path, f'{self.name}_distances.pkl'])  # AHMET
+        self.distances = pd.read_pickle(self.distances_df_path)  # AHMET
+        self.n_sandeel = None  # AHMET
+
         self.data_format = 'zarr'
         assert os.path.isdir(self.sv_path), f"No Sv data found at {self.sv_path}"
 
@@ -690,6 +695,7 @@ class DataReaderZarr():
             df['valid_object'] = valid_object
             df.to_csv(parsed_objects_file_path)
             self.objects_df = df
+            self.n_sandeel = (self.objects_df.category == 27).sum()  # AHMET
             return df
         else:
             # Cannot return object file

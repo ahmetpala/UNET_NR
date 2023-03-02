@@ -77,7 +77,7 @@ class NMBackgroundZarr():
         zarr_rand = np.random.choice(self.zarr_files)
 
         # Select random sample within Near Miss Samples (Equal number of sandeel fish schools)
-        rownumber = np.random.randint(0, (zarr_rand.get_objects_file().category == 27).sum())
+        rownumber = np.random.randint(0, ((zarr_rand.get_objects_file().category == 27).sum())*5)
 
         # Get ping time index
         x = int(zarr_rand.distances.iloc[rownumber].ping_time)

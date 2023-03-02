@@ -321,7 +321,7 @@ class DataZarr:
 
             sampler_probs = [1, 1, 1]
 
-        else:
+        elif self.sampling_strategy == 'Default':
             samplers_train = [
                 BackgroundZarr(readers_train, self.window_size),
                 SeabedZarr(readers_train, self.window_size),
@@ -360,11 +360,14 @@ class DataZarr:
                     fish_type=1,
                 ),
             ]
-
+            
             sampler_probs = [1, 5, 5, 5, 5, 5]
+            
+        else: raise ValueError(f"Undefined sampling strategy: {self.sampling_strategy}")
 
         assert len(sampler_probs) == len(samplers_train)
         assert len(sampler_probs) == len(samplers_test)
+        print(f"Sampling strategy for training and validation: {self.sampling_strategy}, {sampler_probs}")
 
         return samplers_train, samplers_test, sampler_probs
 

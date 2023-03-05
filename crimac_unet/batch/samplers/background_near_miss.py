@@ -84,6 +84,13 @@ class NMBackgroundZarr():
 
         # Get ping time index
         y = int(zarr_rand.distances.iloc[rownumber].range)
-        if y < self.window_size[0] // 2: y = self.window_size[0] // 2 # Modifying exceeding patches
+
+        # "adjust" x and y so that the selected area/seabed is not always in the middle of the crop
+        x += np.random.randint(-(self.window_size[0] // 2)-25, (self.window_size[0] // 2 + 25)) # To keep the 25*25 area within the crop
+        y += np.random.randint(-50, 50 + 1) # Not to go further down from the seabed
+
+        if y < self.window_size[0] // 2: y = self.window_size[0] // 2  # Modifying exceeding patches
+        if x < 129: x = 129
+        if x > (zarr_rand.shape[0]-129): x = (zarr_rand.shape[0]-129)
 
         return [y, x], zarr_rand

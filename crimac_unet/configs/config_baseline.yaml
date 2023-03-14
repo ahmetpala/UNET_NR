@@ -68,7 +68,7 @@ preload_n_pings: 0
 ### Config options: Save predictions
 
 # Save predictions for list of surveys
-save_prediction_surveys: [2017]
+save_prediction_surveys: [2007, 2008, 2009, 2010, 2011, 2013, 2014, 2015, 2016, 2017, 2018]
 # Whether to resume writing zarr predictions for a survey
 resume_writing: False
 # Whether to save the labels

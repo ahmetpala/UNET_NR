@@ -23,7 +23,7 @@ late_meta_inject: False
 # Loss to use (Options: CE-> cross-entropy, Focal -> focal loss, Dice -> dice loss, Combined -> combination focal and CE)
 loss_type: CE
 # Sampling Strategy for training and validation. 'Near_Miss' for equal sampling (default:'Default' (Olav's sampling))
-sampling_strategy: 'Near_Miss'
+sampling_strategy: 'Random_Bg'
 # Input batch size (default: 16)
 batch_size: 16
 # Learning rate (default: 0.005)

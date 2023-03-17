@@ -320,6 +320,36 @@ class DataZarr:
                 SchoolZarr(readers_test, self.window_size, 1)]
 
             sampler_probs = [1, 1, 1]
+            
+        elif self.sampling_strategy == 'Random_Bg':
+            samplers_train = [
+                BackgroundZarr(readers_train, self.window_size),
+                SchoolZarr(readers_train, self.window_size, 27),
+                SchoolZarr(readers_train, self.window_size, 1)]
+
+            # Also same random samplers for testing during training
+            samplers_test = [
+                BackgroundZarr(readers_train, self.window_size),
+                SchoolZarr(readers_test, self.window_size, 27),
+                SchoolZarr(readers_test, self.window_size, 1)]
+
+            sampler_probs = [1, 1, 1]
+            
+        elif self.sampling_strategy == 'NM_and_Random_Bg':
+            samplers_train = [
+                NMBackgroundZarr(readers_train, self.window_size),
+                BackgroundZarr(readers_train, self.window_size),
+                SchoolZarr(readers_train, self.window_size, 27),
+                SchoolZarr(readers_train, self.window_size, 1)]
+
+            # Also same random samplers for testing during training
+            samplers_test = [
+                NMBackgroundZarr(readers_train, self.window_size),
+                BackgroundZarr(readers_train, self.window_size),
+                SchoolZarr(readers_test, self.window_size, 27),
+                SchoolZarr(readers_test, self.window_size, 1)]
+
+            sampler_probs = [1, 1, 2, 2]
 
         elif self.sampling_strategy == 'Default':
             samplers_train = [

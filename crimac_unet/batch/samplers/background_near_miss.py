@@ -71,18 +71,16 @@ class NMBackgroundZarr():
         """
         self.zarr_files = zarr_files
         self.window_size = window_size
-        self.thresholds = {2011: 33.22945957485141, 2013: 33.167769220736616, 2014: 46.48532133305009,
-                           2015: 45.866204078489865, 2016: 34.2591259264971, 2017: 36.18716532013442}
 
     def get_sample(self):
         # Select random zarr file in list
         zarr_rand = np.random.choice(self.zarr_files)
 
         # Select random sample within Near Miss Samples (Equal number of sandeel fish schools)
-        #rownumber = np.random.randint(0, ((zarr_rand.get_objects_file().category == 27).sum())*5)
+        rownumber = np.random.randint(0, ((zarr_rand.get_objects_file().category == 27).sum())*10)
         
         # Select random sample within Near Miss Samples (Based on threshold calculated from sandeel schools)
-        rownumber = np.random.randint(0, (zarr_rand.distances['fast_avr_dist'] < self.thresholds[zarr_rand.year]).sum())
+        #rownumber = np.random.randint(0, (zarr_rand.distances['fast_avr_dist'] < self.thresholds[zarr_rand.year]).sum())
 
         # Get ping time index
         x = int(zarr_rand.distances.iloc[rownumber].ping_time)

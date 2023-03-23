@@ -77,7 +77,7 @@ class NMBackgroundZarr():
         zarr_rand = np.random.choice(self.zarr_files)
 
         # Select random sample within Near Miss Samples (Equal number of sandeel fish schools)
-        rownumber = np.random.randint(0, ((zarr_rand.get_objects_file().category == 27).sum())*10)
+        rownumber = np.random.randint(0, ((zarr_rand.get_objects_file().category == 27).sum())*5)
         
         # Select random sample within Near Miss Samples (Based on threshold calculated from sandeel schools)
         #rownumber = np.random.randint(0, (zarr_rand.distances['fast_avr_dist'] < self.thresholds[zarr_rand.year]).sum())

@@ -132,7 +132,7 @@ class SegPipe:
     def get_criterion(self):
         criterion = None
         # TODO: move out
-        weight = torch.tensor([10., 300, 250]).to(self.device)
+        weight = torch.tensor([10., 10., 10.]).to(self.device)
 
         if self.loss_type == "CE":
             criterion = nn.CrossEntropyLoss(weight=weight)
